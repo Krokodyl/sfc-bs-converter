@@ -1,0 +1,3 @@
+module kroko {
+    exports kroko;
+}
