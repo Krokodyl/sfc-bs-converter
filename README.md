@@ -95,7 +95,7 @@ sfc-bs-converter.exe [option] [mode] <file>
 | -o \<file\> | Writes the output to a text file with SHIFT-JIS encoding. (useful if your terminal only supports UTF-8) |
 
 Examples
-```console
+```posh
 D:\emulation\git\sfc-bs-converter\release>sfc-bs-converter.exe -info-sfc bs-demo-mpack.sfc
 SFC to BS Converter 1.0
 SFC Header found at offset 07FC0
@@ -104,7 +104,7 @@ Rom Speed: SlowRom (20)
 Map Mode: LoROM (20)
 ```
 
-```console
+```posh
 D:\emulation\git\sfc-bs-converter\release>sfc-bs-converter.exe -o output.txt -info-bs "Tamori no Picross (9-6) + Wai Wai Check (8-26).bs"
 SFC to BS Converter 1.0
 BS Header found at offset 0FFB0
