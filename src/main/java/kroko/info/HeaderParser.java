@@ -147,8 +147,9 @@ public class HeaderParser {
         if (checksum+complement==0xFFFF) {
             byte[] header = Arrays.copyOfRange(data, romType.getOffsetHeader(), romType.getOffsetHeader() + romType.getHeaderLength());
             
-            printMessage(String.format("SFC Header found at offset %s\n", h5(romType.getOffsetHeader())));
+            printMessage(String.format("----- SFC header found (offset %s) -----\n", h5(romType.getOffsetHeader())));
             printSfcHeader(header);
+            printMessage("----- ------------------------------- -----\n");
                 
             return romType;
             
@@ -158,8 +159,11 @@ public class HeaderParser {
         complement = readWord(data, romType.getOffsetHeader()+romType.getOffsetChecksum()-2);
         if (checksum+complement==0xFFFF) {
             byte[] header = Arrays.copyOfRange(data, romType.getOffsetHeader(), romType.getOffsetHeader() + romType.getHeaderLength());
-            printMessage(String.format("SFC Header found at offset %s\n", h5(romType.getOffsetHeader())));
+
+            printMessage(String.format("----- SFC header found (offset %s) -----\n", h5(romType.getOffsetHeader())));
             printSfcHeader(header);
+            printMessage("----- ------------------------------- -----\n");
+            
             return romType;
         }
 
@@ -187,8 +191,10 @@ public class HeaderParser {
                 if (checksum + complement == 0xFFFF) {
                     byte[] header = Arrays.copyOfRange(data, blockOffset + romType.getOffsetHeader(), blockOffset + romType.getOffsetHeader() + romType.getHeaderLength());
                     found = true;
-                    printMessage(String.format("BS Header found at offset %s\n", h5(blockOffset + romType.getOffsetHeader())));
+
+                    printMessage(String.format("----- BS header found (offset %s) -----\n", h5(blockOffset + romType.getOffsetHeader())));
                     printBsHeader(header);
+                    printMessage("----- ------------------------------ -----\n");
                 }
                 romType = RomType.BS_HIROM;
                 checksum = readWord(data, blockOffset + romType.getOffsetHeader() + romType.getOffsetChecksum());
@@ -196,8 +202,9 @@ public class HeaderParser {
                 if (checksum + complement == 0xFFFF) {
                     byte[] header = Arrays.copyOfRange(data, blockOffset + romType.getOffsetHeader(), blockOffset + romType.getOffsetHeader() + romType.getHeaderLength());
                     found = true;
-                    printMessage(String.format("BS Header found at offset %s\n", h5(blockOffset + romType.getOffsetHeader())));
+                    printMessage(String.format("----- BS header found (offset %s) -----\n", h5(blockOffset + romType.getOffsetHeader())));
                     printBsHeader(header);
+                    printMessage("----- ------------------------------ -----\n");
                 }
 
             }

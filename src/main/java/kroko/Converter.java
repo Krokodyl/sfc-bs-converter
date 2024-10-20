@@ -126,6 +126,17 @@ public class Converter {
             return;
         }
         if (mode == Mode.INFO_SFC) {
+            parser.addPrintWriter(new PrintWriter(System.out));
+            // add file printer for UTF-8
+            if (output != null && !output.isEmpty()) {
+                PrintWriter writer;
+                try {
+                    writer = new PrintWriter(output, StandardCharsets.UTF_8);
+                    parser.addPrintWriter(writer);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
             parser.autodetectSfcHeader(inputRom);
             return;
         }
@@ -143,7 +154,6 @@ public class Converter {
     }
 
     private static void printHelp() throws IOException {
-        // java.io.InputStream
         InputStream inputStream = Converter.class.getResourceAsStream("/help.txt");
         InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
         BufferedReader reader = new BufferedReader(streamReader);
