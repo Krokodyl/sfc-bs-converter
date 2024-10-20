@@ -14,9 +14,9 @@ It may or may not work with other roms as changing the header does not guarantee
 
 ### Differences between headers
 
-| SNES rom header                                                                                                                                                                                                                                                                                                                                    | BS rom header                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <br/><br/><br/>xFC0 = Cartridge title (21 bytes)<br/><br/>xFD5 = ROM speed and memory map mode<br/>xFD6 = Chipset<br/>xFD7 = ROM size<br/>xFD8 = RAM size<br/>xFD9 = Country (Implies NTSC/PAL)<br/>xFDA = Developer ID<br/>xFDB = ROM version (0 = first)<br/>xFDC = Checksum complement (Checksum ^ xFFF)<br/>xFDE = Checksum<br/>xFE0 = Interrupt vectors<br/> | xFB0-xFB1 = Licensee / Maker Code<br/>xFB2-xFB5 = Program Type<br/>xFB6-xFBF = Reserved<br/>xFC0-xFCF = Title (Shift-JIS)<br/>xFD0-xFD3 = Block Allocation Flags<br/>xFD4-xFD5 = Limited Starts<br/>xFD6      = Date - Month<br/>xFD7      = Date - Day<br/>xFD8      = ROM Speed (unconfirmed) & Map Mode<br/>xFD9      = File/Execution Type<br/>xFDA      = Fixed (0x33)<br/>xFDB      = Version Number (unconfirmed)<br/>xFDC-xFDD = Inverse Checksum<br/>xFDE-xFDF = Checksum<br/>xFE0-xFFF = Exception Vectors (Identical to SNES ROM header) |
+| SNES rom header                                                                                                                                                                                                                                                                                                                                 | BS rom header                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <br/><br/><br/>xFC0 = Cartridge title (21 bytes)<br/><br/>xFD5 = ROM speed and memory map mode<br/>xFD6 = Chipset<br/>xFD7 = ROM size<br/>xFD8 = RAM size<br/>xFD9 = Country (Implies NTSC/PAL)<br/>xFDA = Developer ID<br/>xFDB = ROM version (0 = first)<br/>xFDC = Checksum complement<br/>xFDE = Checksum<br/>xFE0 = Interrupt vectors<br/> | xFB0-xFB1 = Licensee / Maker Code<br/>xFB2-xFB5 = Program Type<br/>xFB6-xFBF = Reserved<br/>xFC0-xFCF = Title (Shift-JIS)<br/>xFD0-xFD3 = Block Allocation Flags<br/>xFD4-xFD5 = Limited Starts<br/>xFD6      = Date - Month<br/>xFD7      = Date - Day<br/>xFD8      = ROM Speed (unconfirmed) & Map Mode<br/>xFD9      = File/Execution Type<br/>xFDA      = Fixed (0x33)<br/>xFDB      = Version Number (unconfirmed)<br/>xFDC-xFDD = Inverse Checksum<br/>xFDE-xFDF = Checksum<br/>xFE0-xFFF = Exception Vectors (Identical to SNES ROM header) |
 
 <p>Sources:
 
@@ -78,6 +78,26 @@ Example:
 -b 28 31
 will change ROM Speed & Map mode (7FD8/FFD8) to FastROM HiROM (31)
 
+Here are some possible offsets for this option:
+
+| Offset | Section                             |
+|--------|-------------------------------------|
+| 00     | xFB0-xFB1 = Licensee / Maker Code   |
+| 02     | xFB2-xFB5 = Program Type            |
+| 06     | xFB6-xFBF = Reserved                |
+| 10     | xFC0-xFCF = Title (Shift-JIS)       |
+| 20     | xFD0-xFD3 = Block Allocation Flags  |
+| 24     | xFD4-xFD5 = Limited Starts          |
+| 26     | xFD6 = Date - Month                 |
+| 27     | xFD7 = Date - Day                   |
+| 28     | xFD8 = ROM Speed & Map Mode         |
+| 29     | xFD9 = File/Execution Type          |
+| 2A     | xFDA = Fixed (0x33)                 |
+| 2B     | xFDB = Version Number (unconfirmed) |
+| 2C     | xFDC-xFDD = Inverse Checksum        |
+| 2E     | xFDE-xFDF = Checksum                |
+| 30     | xFE0-xFFF = Exception Vectors       |
+
 ### Display header
 
 ```
@@ -106,8 +126,7 @@ Map Mode: LoROM (20)
 
 ```posh
 D:\emulation\git\sfc-bs-converter\release>sfc-bs-converter.exe -o output.txt -info-bs "Tamori no Picross (9-6) + Wai Wai Check (8-26).bs"
-SFC to BS Converter 1.0
-BS Header found at offset 0FFB0
+----- BS header found (offset 0FFB0) -----
 Title:  ﾀﾓﾘのﾋﾟｸﾛｽ 5/10
 Blocks: 4 (11100001)
 Boot Limit: Unlimited (00)
@@ -118,7 +137,8 @@ Map Mode: HiROM (21)
 Soundlink Radio: Unmuted (20)
 Execution: PSRAM (20)
 St.GIGA Intro: Play (20)
-BS Header found at offset 27FB0
+----- ------------------------------ -----
+----- BS header found (offset 27FB0) -----
 Title: ﾜｲﾜｲ8/26版本放送
 Blocks: 4 (00011110)
 Boot Limit: Unlimited (00)
@@ -129,6 +149,8 @@ Map Mode: LoROM (20)
 Soundlink Radio: Unmuted (20)
 Execution: PSRAM (20)
 St.GIGA Intro: Play (20)
+----- ------------------------------ -----
+
 ```
 
 ### Compile the tool
