@@ -232,7 +232,7 @@ public class Converter {
         parser.printBsHeader(bsHeader);
         parser.printMessage("---------- ------------- ----------\n");
         
-        ChecksumCalculator.updateChecksumBS(data, outputRomType);
+        ChecksumCalculator.updateChecksum(data, outputRomType, outputRomType.getOffsetHeader());
         saveData(outputRom, data);
     }
 
