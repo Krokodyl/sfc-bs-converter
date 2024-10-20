@@ -40,12 +40,7 @@ public class HeaderParser {
             writer.close();
         }
     }
-    
-    public void printSfcHeader(String inputRom, RomType romType) {
-        byte[] data = readRom(inputRom);
-        printSfcHeader(Arrays.copyOfRange(data, romType.getOffsetHeader()+0x10, romType.getOffsetHeader()+romType.getHeaderLength()));
-    }
-    
+
     public void printSfcHeader(int[] header) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         for (int i : header) {
@@ -57,10 +52,7 @@ public class HeaderParser {
     public void printSfcHeader(byte[] header) {
         int expectedSize = RomType.SFC_LOROM.getHeaderLength();
         if (header.length==expectedSize) {
-            String title = "";
-            /*for (int i : Arrays.copyOfRange(header, 0, 21)) {
-                title += (char) i;
-            }*/
+            String title;
             title = new String(Arrays.copyOfRange(header, 0, 21), StandardCharsets.UTF_8);
 
             printMessage(String.format("Title: %s\n", title));
@@ -91,11 +83,9 @@ public class HeaderParser {
     
     public void printBsHeader(byte[] header) {
         if (header.length==RomType.BS_LOROM.getHeaderLength()) {
-            String title = "";
-            byte value = 0;
-            /*for (int i : Arrays.copyOfRange(header, 0x10, 0x10+16)) {
-                title += (char) i;
-            }*/
+            String title;
+            byte value;
+            
             try {
                 title = new String(Arrays.copyOfRange(header, 0x10, 0x10+16), "SHIFT-JIS");
             } catch (UnsupportedEncodingException e) {
@@ -144,10 +134,6 @@ public class HeaderParser {
         }
     }
     
-    /**
-     * Experimental
-     * @return
-     */
     public RomType autodetectSfcHeader(String inputRom) {
 
         byte[] data = readRom(inputRom);
@@ -187,6 +173,8 @@ public class HeaderParser {
         RomType romType;
         int checksum;
         int complement;
+        
+        boolean found = false;
 
         // Checking bs
         int block = 0;
@@ -198,7 +186,7 @@ public class HeaderParser {
                 complement = readWord(data, blockOffset + romType.getOffsetHeader() + romType.getOffsetChecksum() - 2);
                 if (checksum + complement == 0xFFFF) {
                     byte[] header = Arrays.copyOfRange(data, blockOffset + romType.getOffsetHeader(), blockOffset + romType.getOffsetHeader() + romType.getHeaderLength());
-
+                    found = true;
                     printMessage(String.format("BS Header found at offset %s\n", h5(blockOffset + romType.getOffsetHeader())));
                     printBsHeader(header);
                 }
@@ -207,6 +195,7 @@ public class HeaderParser {
                 complement = readWord(data, blockOffset + romType.getOffsetHeader() + romType.getOffsetChecksum() - 2);
                 if (checksum + complement == 0xFFFF) {
                     byte[] header = Arrays.copyOfRange(data, blockOffset + romType.getOffsetHeader(), blockOffset + romType.getOffsetHeader() + romType.getHeaderLength());
+                    found = true;
                     printMessage(String.format("BS Header found at offset %s\n", h5(blockOffset + romType.getOffsetHeader())));
                     printBsHeader(header);
                 }
@@ -215,6 +204,7 @@ public class HeaderParser {
             block++;
         }
 
+        if (!found) printMessage("No valid BS header found.\n");
         flushWriters();
         closeWriters();
     }
