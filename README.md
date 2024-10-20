@@ -64,6 +64,30 @@ sfc-bs-converter.exe [options] -i <file> -o <file>
 | -t \<string\>               | The title of the game in ASCII (max 16 characters)<br/>Use quotation marks if the title contains spaces |
 | -b \<int\> \<int\>          | Overrides a given byte in the header (see details below)                                                |
 
+Examples
+```posh
+D:\emulation\git\sfc-bs-converter>release\sfc-bs-converter-1.0.exe -b 29 80 -i "tmp\bs-demo-mpack.sfc" -o "tmp\bs-demo-mpack.bs"
+SFC to BS Converter 1.0
+---------- Input Header ----------
+Title: BS-DEMO-MPACK
+Rom Speed: SlowRom (20)
+Map Mode: LoROM (20)
+---------- ------------ ----------
+---------- Output Header ----------
+Title: BS-DEMO-MPACK
+Blocks: 2 (00000011)
+Boot Limit: Unlimited (00)
+Month: 1 (10)
+Day: 1 (08)
+Rom Speed: SlowRom (20)
+Map Mode: LoROM (20)
+Soundlink Radio: Unmuted (80)
+Execution: FLASH (80)
+St.GIGA Intro: Skip (80)
+---------- ------------- ----------
+Saving rom: tmp\bs-demo-mpack.bs
+```
+
 #### Override option _-b_
 
 The option `-b <int> <int>` lets you override any given byte in the BS header
