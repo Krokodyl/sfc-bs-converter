@@ -111,7 +111,7 @@
                         <argument>bin\${project.artifactId}.bat</argument>
 
                         <argument>--output</argument>
-                        <argument>${project.build.directory}\..\release\${project.artifactId}.exe</argument>
+                        <argument>${project.build.directory}\..\release\${project.artifactId}-${project.version}.exe</argument>
                     </arguments>
                 </configuration>
             </plugin>

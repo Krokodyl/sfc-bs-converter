@@ -6,27 +6,34 @@ https://stackoverflow.com/questions/69811401/how-to-create-a-standalone-exe-in-j
 
  */
 
+import kroko.info.HeaderParser;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Converter {
+import static kroko.info.Utils.*;
 
+public class Converter {
     
     static HashMap<Integer, Integer> mapOffsetByte = new HashMap<>();
     
     public static void main(String[] args){
-        System.out.println("SFC to BS Converter 1.0");
+
+        HeaderParser parser = new HeaderParser();
         
-        RomType romType = RomType.LOW_ROM;
+        RomType romType = null;
         String title = "";
         String inputRom = "";
-        String outputRom = "";
-        String day = "28";
-        String month = "12";
+        String output = "";
+        String day = "01";
+        String month = "01";
+
+        System.out.printf("SFC to BS Converter %s\n", Version.value);
+        
+        Mode mode = Mode.CONVERT;
                 
         int i = 0;
         while (i<args.length) {
@@ -40,8 +47,22 @@ public class Converter {
                 }
                 return;
             }
-            if (arg.equals("-lo")) romType = RomType.LOW_ROM;
-            if (arg.equals("-hi")) romType = RomType.HI_ROM;
+            if (arg.equals("-info-sfc")) {
+                mode = Mode.INFO_SFC;
+                if (i<args.length) {
+                    inputRom = args[i];
+                }
+            }
+            if (arg.equals("-info-bs")) {
+                mode = Mode.INFO_BS;
+                if (i<args.length) {
+                    inputRom = args[i];
+                }
+            }
+            if (arg.equals("-lorom") || arg.equals("-lo")) romType = RomType.SFC_LOROM;
+            if (arg.equals("-hirom") || arg.equals("-hi")) romType = RomType.SFC_HIROM;
+            if (arg.equals("-auto")) romType = null;
+            
             if (arg.equals("-title") || arg.equals("-t")) {
                 if (i<args.length) title = args[i].substring(0, Math.min(16, args[i].length()));
                 i++;
@@ -51,7 +72,7 @@ public class Converter {
                 i++;
             }
             if (arg.equals("-o") | arg.equals("-output")) {
-                if (i<args.length) outputRom = args[i];
+                if (i<args.length) output = args[i];
                 i++;
             }
             if (arg.equals("-d") | arg.equals("-day")) {
@@ -87,13 +108,35 @@ public class Converter {
             
         }
 
+        if (mode==Mode.INFO_BS) {
+            // add console printer
+            parser.addPrintWriter(new PrintWriter(System.out));
+            // add file printer for Shift-JIS
+            if (output != null && !output.isEmpty()) {
+                PrintWriter writer;
+                try {
+                    writer = new PrintWriter(output, "SHIFT-JIS");
+                    parser.addPrintWriter(writer);
+                } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
+            parser.autodetectBsHeaders(inputRom);
+            return;
+        }
+        if (mode == Mode.INFO_SFC) {
+            parser.autodetectSfcHeader(inputRom);
+            return;
+        }
+        
         if (inputRom.isEmpty()) {
-            System.err.println("No input rom. Use option -i rom.sfc");
+            System.err.println("No input rom. Use option -help for more info.");
         } else {
-            if (outputRom.isEmpty()) {
-                System.err.println("No output rom. Use option -o rom.bs");
+            if (output.isEmpty()) {
+                System.err.println("No output rom. Use option -help for more info.");
             } else {
-                sfc2bs(title, inputRom, outputRom, day, month, romType);
+                sfc2bs(title, inputRom, output, day, month, romType);
             }
         }
         
@@ -115,15 +158,32 @@ public class Converter {
             String outputRom,
             String day,
             String month,
-            RomType romType) {
-        byte[] data = new byte[0];
-        try {
-            data = Files.readAllBytes(new File(inputRom).toPath());
-        } catch (IOException ex) {
-            System.err.println(ex.getMessage());
-        }
+            RomType inputRomType) {
         
-        int[] header = getSfcHeader(data, romType);
+        byte[] data = readRom(inputRom);
+
+        HeaderParser parser = new HeaderParser();
+        
+        RomType outputRomType = RomType.BS_LOROM;
+        if (inputRomType==RomType.SFC_HIROM) outputRomType = RomType.BS_HIROM;
+        
+        if (inputRomType == null) {
+            inputRomType = parser.autodetectSfcHeader(inputRom);
+            if (inputRomType==null)
+                inputRomType = RomType.SFC_LOROM;
+        }
+        int[] sfcHeader = getSfcHeader(data, inputRomType);
+        
+        parser.addPrintWriter(new PrintWriter(System.out));
+
+        parser.printMessage("---------- Input Header ----------\n");
+        parser.printSfcHeader(sfcHeader);
+        parser.printMessage("---------- ------------ ----------\n");
+
+        int[] bsHeader = new int[outputRomType.getHeaderLength()];
+        for (int i = 0; i < bsHeader.length; i++) {
+            bsHeader[i] = data[outputRomType.getOffsetHeader()+i];
+        }
         
         int[] defaultValues = {
                 0x0F, 0x00, 0x00, 0x00, // Block Allocation Flags
@@ -131,36 +191,48 @@ public class Converter {
                 0xC0, // Date - Month
                 0xE0, // Date - Day
                 0x20, // ROM Speed (unconfirmed) & Map Mode
-                0x20, // File/Execution Type
+                0x00, // File/Execution Type
                 0x33, // Fixed (0x33)
                 0x02  // Version Number (unconfirmed)
         };
         for (int i = 0; i < defaultValues.length; i++) {
             int defaultValue = defaultValues[i];
-            header[0x20+i] = defaultValue;
+            bsHeader[0x20+i] = defaultValue;
+        }
+        
+        // ROM Speed / Mode
+        bsHeader[0x28] = sfcHeader[0x15];
+        
+        // ROM TYPE
+        if (outputRomType==RomType.BS_HIROM) {
+            bsHeader[0x28] = bsHeader[0x28] | 0x01;
         }
         
         // TITLE
-        if (title.isEmpty()) writeBytes(header, getSfcTitle(header), 0x10);
-        else writeBytes(header, getTitle(title), 0x10);
+        if (title.isEmpty()) writeBytes(bsHeader, getSfcTitle(sfcHeader), 0x10);
+        else writeBytes(bsHeader, getTitle(title), 0x10);
         // DATE
-        writeByte(header, getMonth(month), 0x26);
-        writeByte(header, getDay(day), 0x27);
+        writeByte(bsHeader, getMonth(month), 0x26);
+        writeByte(bsHeader, getDay(day), 0x27);
 
         // BLOCK ALLOCATION
         byte blockFlag = getBlockFlag(data.length);
-        header[0x20] = blockFlag;
+        bsHeader[0x20] = blockFlag;
 
         for (Map.Entry<Integer, Integer> e : mapOffsetByte.entrySet()) {
-            header[e.getKey()] = e.getValue();
+            bsHeader[e.getKey()] = e.getValue();
         }
 
-        int offset = romType.getOffsetHeader();
-        for (int i : header) {
+        int offset = outputRomType.getOffsetHeader();
+        for (int i : bsHeader) {
             data[offset++] = (byte) (i & 0xFF);
         }
 
-        ChecksumCalculator.updateChecksumBS(data, romType);
+        parser.printMessage("---------- Output Header ----------\n");
+        parser.printBsHeader(bsHeader);
+        parser.printMessage("---------- ------------- ----------\n");
+        
+        ChecksumCalculator.updateChecksumBS(data, outputRomType);
         saveData(outputRom, data);
     }
 
@@ -168,27 +240,9 @@ public class Converter {
         byte[] res = new byte[16];
         Arrays.fill(res, (byte) 0x20);
         for (int i=0;i<16;i++) {
-            res[i] = (byte) header[0x10+i];
+            res[i] = (byte) header[i];
         }
         return res;
-    }
-
-    public static int[] getSfcHeader(byte[] data, RomType type) {
-        int[] header = new int[0x50];
-        for (int i=0;i<header.length;i++) {
-            header[i] = data[type.getOffsetHeader()+i];
-        }
-        return header;
-    }
-
-    public static void writeBytes(int[] target, byte[] bytes, int offset) {
-        for (byte b : bytes) {
-            target[offset++] = b;
-        }
-    }
-    
-    public static void writeByte(int[] target, byte b, int offset) {
-        target[offset] = b;
     }
 
     /**
@@ -207,41 +261,9 @@ public class Converter {
         return res;
     }
 
-    public static byte getDay(String day) {
-        try {
-            int i = Integer.parseInt(day);
-            if (i<=31) {
-                byte b = (byte) (i << 3);
-                return b;
-            } else System.err.println("Invalid value for -day: "+day);
-        } catch (NumberFormatException e) {
-            System.err.println("Invalid value for -day: "+day);
-        }
-        return (byte) 0xE0;
-    }
+    
 
-    public static byte getMonth(String s) {
-        try {
-            int i = Integer.parseInt(s);
-            if (i<=12) {
-                byte b = (byte) (i << 4);
-                return b;
-            } else System.err.println("Invalid value for -month: "+s);
-        } catch (NumberFormatException e) {
-            System.err.println("Invalid value for -month: "+s);
-        }
-        return (byte) 0xC0;
-    }
-
-    public static byte getBlockFlag(int romSize) {
-        int blockCount = romSize/0x20000;
-        if (blockCount*0x20000<romSize) blockCount++;
-        byte res = 1;
-        while (--blockCount>0) {
-            res = (byte) ((res << 1) + 1);
-        }
-        return res;
-    }
+    
 
     static void saveData(String output, byte[] data) {
         System.out.println("Saving rom: "+output);

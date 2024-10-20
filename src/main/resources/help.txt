@@ -1,25 +1,39 @@
 Converts the header of a SFC rom to a BS rom.
-Does not guarantee that the game will run properly as a Satellaview game.
 To be used with headerless sfc roms (does not support smc headered file).
-Usage: sfc-bs-converter.exe [options] -i file -o file
-options:
-    -lo                If input rom is LoRom (default)
-    -hi                If input rom is HiRom          
-    -t <string>        The title of the game in ASCII (max 16 characters)
-                       Use quotation marks if the title contains spaces
-    -d <int>           The broadcast day of the month (1..31)
-    -m <int>           The broadcast month (1..12)
+
+Mode Converter Usage: sfc-bs-converter.exe [options] -i <file> -o <file>
 file options:
     -i <file>        input rom (usually .sfc file)
     -o <file>        output rom (usually .bs file)
+options:
+    -lorom             If input rom is LoROM (default)
+    -hirom             If input rom is HiROM
+    -auto              Autodetect LoROM/HiROM
+                       (based on checksums)
+    -t <string>        The title of the game in ASCII (max 16 characters)
+                       Use quotation marks if the title contains spaces
+                       default: original title trimmed down to length 16
+    -d <int>           The broadcast day of the month (1..31)
+                       default: 1
+    -m <int>           The broadcast month (1..12)
+                       default: 1 (January)
 override option:
-    -b <xint> <xint>   Overrides a given byte in the header
+    -b <xint> <xint>   Overrides a given byte in the BS header
     This option lets you override any given byte in the header
     (after all other options have been applied and before checksum is updated).
-    1st parameter: the offset in the header (00..4F)
+    1st parameter: the offset from the start of the header (00..4F)
     2nd parameter: the value (00..FF)
     Both values must be in hexadecimal (no prefix)
     Can be used multiple times
     Example: 
 	-b 28 31 
 	will change ROM Speed & Map mode (7FD8/FFD8) to FastROM HiROM (31)
+	
+Mode Info Usage: sfc-bs-converter.exe [options] [mode] <file>
+mode:
+    -info-sfc          prints out the SFC header
+    -info-bs           prints out all BS headers
+option:
+    -o <file>          Writes the output to a text file with SHIFT-JIS encoding.
+                       (useful if your terminal only supports UTF-8)
+Header detection is based on checksums.
