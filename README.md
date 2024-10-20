@@ -6,10 +6,10 @@ This modifies the header of the game and updates the checksum.
 
 I made this tool to easily convert the games I made for the Satellaview with [pvsneslib](https://github.com/alekmaul/pvsneslib).
 
+It may or may not work with other roms as changing the header does not guarantee that the game will run properly.
+
 ![satebo.png](satebo.png)
 ![parabo.png](parabo.png)
-
-Changing the header does not guarantee that the game will run properly. 
 
 ### Differences between headers
 
