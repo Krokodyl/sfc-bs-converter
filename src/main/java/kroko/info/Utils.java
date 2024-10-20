@@ -5,6 +5,7 @@ import kroko.RomType;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 
 public class Utils {
 
@@ -29,25 +30,15 @@ public class Utils {
         return header;
     }
 
-    public static int[] getBsHeader(byte[] data, RomType type) {
-        int[] header = new int[type.getHeaderLength()];
-        for (int i=0;i<header.length;i++) {
-            header[i] = data[type.getOffsetHeader()+i];
-        }
-        return header;
-    }
-    
     /**
      * Converts the day into BS format
      * @param day Day of the month (1-31)
-     * @return 
      */
     public static byte getDay(String day) {
         try {
             int i = Integer.parseInt(day);
             if (i<=31) {
-                byte b = (byte) (i << 3);
-                return b;
+                return (byte) (i << 3);
             } else System.err.println("Invalid value for -day: "+day);
         } catch (NumberFormatException e) {
             System.err.println("Invalid value for -day: "+day);
@@ -58,14 +49,12 @@ public class Utils {
     /**
      * Converts the month into BS format
      * @param month Month (1-12)
-     * @return
      */
     public static byte getMonth(String month) {
         try {
             int i = Integer.parseInt(month);
             if (i<=12) {
-                byte b = (byte) (i << 4);
-                return b;
+                return (byte) (i << 4);
             } else System.err.println("Invalid value for -month: "+month);
         } catch (NumberFormatException e) {
             System.err.println("Invalid value for -month: "+month);
@@ -124,8 +113,12 @@ public class Utils {
         byte[] data = new byte[0];
         try {
             data = Files.readAllBytes(new File(inputRom).toPath());
-        } catch (IOException ex) {
-            System.err.println(ex);
+        } catch (NoSuchFileException ex) {
+            System.err.printf("File not found: %s\n", inputRom);
+            System.exit(1);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
         return data;
     }
