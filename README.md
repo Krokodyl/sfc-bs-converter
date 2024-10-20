@@ -10,6 +10,7 @@ It may or may not work with other roms as changing the header does not guarantee
 
 ![satebo.png](satebo.png)
 ![parabo.png](parabo.png)
+![bsdemo.png](bsdemo.png)
 
 ### Differences between headers
 
